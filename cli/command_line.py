@@ -628,14 +628,24 @@ class GatewayDeviceCommandLine(CommandLineBase):
             clusterId = ('000' + args[1])[-4:]
         self.gateway.discoverAttr(self.device['id'], endpointNum, clusterId)
 
-    def do_info(self, _):
-        '''cli gateway-name device-id> info
+    def do_info(self, line):
+        '''cli gateway-name device-id> info [filename]
 
-        Prints information about the current device.
+        Prints information about the current device. If a filename is provided
+        then the info will be saved into the file rather than printed.
         '''
+        args = line.split()
+        if len(args) > 1:
+            raise ValueError('Expecting 0 or 1 arguments, found %d' % len(args))
         id = self.device['id']
         self.device = self.gateway.device(id)
-        self.log.info(json.dumps(self.device, indent=2))
+        info = json.dumps(self.device, indent=2)
+        if len(args) == 1:
+            filename = args[0]
+            with open(filename, 'w') as f:
+                f.write(info)
+        else:
+            self.log.info(info)
 
     def do_read(self, line):
       '''cli gateway-name device-id> read endpoint clusterId attrId [attrId...]
